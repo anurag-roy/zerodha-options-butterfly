@@ -4,7 +4,9 @@
   "description": "Butterfly Strategy for Options",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "login": "node login.js",
+    "build": "rm -rf build && cd options-ui && npm run build --prod && cp -r build ../"
   },
   "repository": {
     "type": "git",

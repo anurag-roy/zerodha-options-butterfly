@@ -5,36 +5,41 @@ import Autocomplete from "@material-ui/lab/Autocomplete";
 import Grid from "@material-ui/core/Grid";
 import axios from "axios";
 
-const StockInputForm = ({ label, handleChange }) => {
+const StockInputForm = ({ label, tType, handleChange }) =>
+{
   const [names, setNames] = useState([]);
   const [name, setName] = useState("NIFTY");
   const [data, setData] = useState([]);
   const [strikePrice, setStrikePrice] = useState("");
   const [expiry, setExpiry] = useState("");
   const [iType, setIType] = useState("CE");
-  const [tType, setTType] = useState("SELL");
   const [quantity, setQuantity] = useState(75);
 
-  useEffect(() => {
-    axios.get("http://localhost:5000/mapper/names").then((result) => {
+  useEffect(() =>
+  {
+    axios.get("http://localhost:5000/mapper/names").then((result) =>
+    {
       setNames(result.data);
     });
   }, []);
 
-  useEffect(() => {
-    axios.get("http://localhost:5000/mapper/byName", { params: { name: name } }).then((result) => {
+  useEffect(() =>
+  {
+    axios.get("http://localhost:5000/mapper/byName", { params: { name: name } }).then((result) =>
+    {
       setData(result.data);
       setExpiry("");
       setIType("CE");
       setStrikePrice("");
-      setTType("SELL");
       setQuantity(75);
     });
   }, [name]);
 
-  useEffect(() => {
+  useEffect(() =>
+  {
     const x = data.find((d) => d.tradingsymbol === `${name}${expiry}${strikePrice}${iType}`);
-    if (x && quantity && quantity !== 0) {
+    if (x && quantity && quantity !== 0)
+    {
       handleChange({
         ...x,
         transactionType: tType,
@@ -44,23 +49,27 @@ const StockInputForm = ({ label, handleChange }) => {
     }
   }, [data, name, expiry, strikePrice, iType, tType, quantity, handleChange]);
 
-  const mapToStrikePrice = (stockArray) => {
+  const mapToStrikePrice = (stockArray) =>
+  {
     if (stockArray === []) return [];
 
     let spSet = new Set();
-    stockArray.forEach((s) => {
+    stockArray.forEach((s) =>
+    {
       spSet.add(s.strike.toString());
     });
     return [...spSet];
   };
 
-  const mapToExpiry = (stockArray, name, strikePrice) => {
+  const mapToExpiry = (stockArray, name, strikePrice) =>
+  {
     if (stockArray === []) return [];
 
     let expirySet = new Set();
     stockArray
       .filter((s) => s.strike == strikePrice)
-      .forEach((s) => {
+      .forEach((s) =>
+      {
         const ts = s.tradingsymbol;
         const tsTrimmed = ts.substr(0, ts.lastIndexOf(strikePrice));
         const expiry = tsTrimmed.slice(name.length);
@@ -78,7 +87,8 @@ const StockInputForm = ({ label, handleChange }) => {
         <Autocomplete
           id={`${label}-name-input`}
           value={name}
-          onChange={(event, newValue) => {
+          onChange={(event, newValue) =>
+          {
             //console.log("Value for Name:", newValue);
             setName(newValue);
           }}
@@ -91,7 +101,8 @@ const StockInputForm = ({ label, handleChange }) => {
         <Autocomplete
           id={`${label}-sp-input`}
           value={strikePrice}
-          onChange={(event, newValue) => {
+          onChange={(event, newValue) =>
+          {
             //console.log(newValue);
             setStrikePrice(newValue);
           }}
@@ -104,7 +115,8 @@ const StockInputForm = ({ label, handleChange }) => {
         <Autocomplete
           id={`${label}-expiry-input`}
           value={expiry}
-          onChange={(event, newValue) => {
+          onChange={(event, newValue) =>
+          {
             //console.log(newValue);
             setExpiry(newValue);
           }}
@@ -117,7 +129,8 @@ const StockInputForm = ({ label, handleChange }) => {
         <Autocomplete
           id={`${label}-instrument-type-input`}
           value={iType}
-          onChange={(event, newValue) => {
+          onChange={(event, newValue) =>
+          {
             //console.log(newValue);
             setIType(newValue);
           }}
@@ -131,7 +144,8 @@ const StockInputForm = ({ label, handleChange }) => {
           label="Quantity"
           variant="outlined"
           value={quantity}
-          onChange={(event) => {
+          onChange={(event) =>
+          {
             //console.log(event.target.value);
             setQuantity(event.target.value);
           }}
@@ -141,11 +155,7 @@ const StockInputForm = ({ label, handleChange }) => {
         <Autocomplete
           id={`${label}-transaction-type-input`}
           value={tType}
-          onChange={(event, newValue) => {
-            //console.log(newValue);
-            setTType(newValue);
-          }}
-          options={["BUY", "SELL"]}
+          options={[tType]}
           style={{ width: 150 }}
           renderInput={(params) => <TextField {...params} variant="outlined" label="T-Type" />}
         />
