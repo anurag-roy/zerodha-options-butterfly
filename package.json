@@ -4,6 +4,7 @@
   "description": "Butterfly Strategy for Options",
   "main": "main.js",
   "scripts": {
+    "dev": "nodemon index.js",
     "start": "node index.js",
     "login": "node login.js",
     "build": "rm -rf build && cd options-ui && npm run build --prod && cp -r build ../"

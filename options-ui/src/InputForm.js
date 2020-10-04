@@ -2,14 +2,12 @@ import React, { useState, useEffect } from "react";
 import Grid from "@material-ui/core/Grid";
 import StockInputForm from "./StockInputForm";
 import SelectedStock from "./SelectedStock";
-import DataStreamer from "./DataStreamer";
 import { Button } from "@material-ui/core";
 import TextField from "@material-ui/core/TextField";
 import green from "@material-ui/core/colors/green";
 import axios from "axios";
 
-const InputForm = () =>
-{
+const InputForm = () => {
   const [state, setState] = useState("initial");
 
   // const [stockArray, setStockArray] = useState([]);
@@ -34,24 +32,17 @@ const InputForm = () =>
   //   setStockArray([...newStockArray]);
   // }, [stockA, stockB, stockC]);
 
-  const proceedButton = () =>
-  {
+  const proceedButton = () => {
     axios
-      .post("http://localhost:5000/placeOrder", { stockA, stockB, stockC, entryPrice })
+      .post("http://localhost:5000/startButterfly", { stockA, stockB, stockC, entryPrice })
       .then((data) => console.log(data))
       .catch((error) => console.error(error));
     setState("done");
   };
 
-  if (state === "initial")
-  {
+  if (state === "initial") {
     return (
       <div>
-        <Grid container direction="row" spacing={5}>
-          <Grid item>
-            <DataStreamer />
-          </Grid>
-        </Grid>
         <Grid container direction="row" justify="center" spacing={5}>
           <Grid item>
             <StockInputForm label="A" tType="SELL" handleChange={setStockA} />
@@ -64,15 +55,16 @@ const InputForm = () =>
           </Grid>
         </Grid>
         <Grid container direction="row" justify="center" spacing={5}>
-          <Grid item><h3>Entry Price:</h3></Grid>
+          <Grid item>
+            <h3>Entry Price:</h3>
+          </Grid>
           <Grid item>
             <TextField
               id="entryPrice"
               label="Entry Price"
               variant="outlined"
               value={entryPrice}
-              onChange={(event) =>
-              {
+              onChange={(event) => {
                 setEntryPrice(event.target.value);
               }}
             />
@@ -103,8 +95,7 @@ const InputForm = () =>
         </Grid>
       </div>
     );
-  } else
-  {
+  } else {
     return <div>Done!</div>;
   }
 };

@@ -40,7 +40,7 @@ const SelectedStock = ({ input, data }) => {
           Instrument Type: {data.instrument_type} <br />
           Exchange: {data.exchange} <br />
           Transaction: {data.transactionType} <br />
-          Qunatity: {data.quantity}
+          Quantity: {data.quantity}
         </Typography>
       </div>
     );

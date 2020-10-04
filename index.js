@@ -4,8 +4,6 @@ const cors = require("cors");
 const express = require("express");
 const app = express();
 const mapperRouter = require("./mapper");
-const http = require("http").createServer(app);
-const io = require("socket.io")(http);
 const KiteConnect = require("kiteconnect").KiteConnect;
 const KiteTicker = require("kiteconnect").KiteTicker;
 
@@ -16,11 +14,6 @@ const kc = new KiteConnect({
   api_key: apiKey,
 });
 kc.setAccessToken(accessToken);
-
-const ticker = new KiteTicker({
-  api_key: apiKey,
-  access_token: accessToken,
-});
 
 app.use(cors());
 app.use(express.json());
@@ -49,45 +42,69 @@ const order = async (stock) => {
   return `Order placed for ${stock.exchange}:${stock.tradingsymbol}, Transaction: ${stock.transactionType}, product: ${stock.product}, quantity: ${stock.quantity}`;
 };
 
-app.post("/placeOrder", async (request, response) => {
-  const stockArray = request.body;
-
-  const promiseArray = [];
-
-  stockArray.forEach((s) => {
-    promiseArray.push(order(s));
-  });
-
-  await Promise.all(promiseArray);
-
-  const positions = await kc.getPositions();
-  console.log(positions);
-
+app.post("/startButterfly", ({ body }, response) => {
+  butterflyStrategy(body.stockA, body.stockB, body.stockC, body.entryPrice);
   response.send("Check console.");
 });
 
-io.on("connection", (socket) => {
-  console.log("User connected");
+const lookForEntry = (aBuyersBid, bSellersBid, cBuyersBid, entryPrice) => {
+  if (aBuyersBid - bSellersBid + cBuyersBid > entryPrice) {
+    return true;
+  }
+};
 
-  ticker.connect();
+const butterflyStrategy = (stockA, stockB, stockC, entryPrice) => {
+  const aToken = parseInt(stockA.instrument_token);
+  const bToken = parseInt(stockB.instrument_token);
+  const cToken = parseInt(stockC.instrument_token);
+
+  let enteredMarket = false;
+  let aBuyersBid, bSellersBid, cBuyersBid;
+
+  const ticker = new KiteTicker({
+    api_key: apiKey,
+    access_token: accessToken,
+  });
 
   ticker.on("connect", () => {
-    console.log("Connecting to Zerodha");
-    const items = [256265];
-    console.log("Subscribing to NIFTY 50");
+    console.log("Subscribing to stocks...");
+    const items = [aToken, bToken, cToken];
     ticker.subscribe(items);
     ticker.setMode(ticker.modeFull, items);
   });
 
-  ticker.on("ticks", (tick) => {
-    socket.emit("FromKiteTicker", JSON.stringify(tick));
-  });
+  ticker.on("ticks", (ticks) => {
+    if (!enteredMarket) {
+      // Check tick and update corresponding stock bid price
+      ticks.forEach((t) => {
+        if (t.instrument_token == aToken) {
+          if (t.depth) {
+            if (t.depth.buy) {
+              aBuyersBid = t.depth.buy[1].price;
+            }
+          }
+        } else if (t.instrument_token == bToken) {
+          if (t.depth) {
+            if (t.depth.sell) {
+              bSellersBid = t.depth.sell[1].price;
+            }
+          }
+        } else if (t.instrument_token == cToken) {
+          if (t.depth) {
+            if (t.depth.buy) {
+              cBuyersBid = t.depth.buy[1].price;
+            }
+          }
+        }
+      });
 
-  socket.on("disconnect", () => {
-    console.log("Client disconnected");
+      // Check for entry condition
+    } else if (enteredMarket) {
+      ticker.disconnect();
+    }
   });
-});
+};
 
-http.listen(5000, () => {
-  console.log("listening on *:5000");
+app.listen(5000, () => {
+  console.log("App started on http://localhost:5000");
 });
